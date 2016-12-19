@@ -1,5 +1,5 @@
 require 'nokogiri'
-require 'play_downloader'
+require './lib/play_downloader'
 # Parses xml play object to be analyze
 class Play
   attr_reader :root, :name_path, :lines_path

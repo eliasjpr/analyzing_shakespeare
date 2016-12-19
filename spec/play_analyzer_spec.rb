@@ -5,7 +5,6 @@ RSpec.describe PlayAnalyzer do
   let!(:xml_data) { File.read('./spec/xml_files/play_example.xml') }
   let!(:parsed_xml) { Nokogiri::XML.parse xml_data }
   let!(:url) { 'http://www.ibiblio.org/xml/examples/shakespeare/macbeth.xml' }
-  let(:analysis) {  }
 
   before do
     play = instance_double('Play')

@@ -1,15 +1,17 @@
-require 'speech'
+require './lib/speech'
+require './lib/play'
+
 # Analizes speeches
 class PlayAnalyzer
   ROOT = '//SCENE//SPEECH'.freeze
   INGNORE_SPEAKERS = 'ALL'.freeze
 
   def self.analyze(url)
-    xml_doc = Play.xml_doc(url)
-    new(xml_doc).analyze
+    new(url).analyze
   end
 
-  def initialize(xml_doc)
+  def initialize(url)
+    xml_doc = Play.xml_doc(url)
     @xml_doc = xml_doc
   end
 
@@ -20,7 +22,7 @@ class PlayAnalyzer
       next if speaker.name == INGNORE_SPEAKERS
       @speeches[speaker.name] += speaker.total_lines
     end
-    @speeches 
+    @speeches
   end
 
   def report
