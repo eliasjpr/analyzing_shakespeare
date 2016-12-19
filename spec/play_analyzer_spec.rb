@@ -1,34 +1,27 @@
 require './lib/play_analyzer'
 require 'net/http'
-require 'webmock/rspec'
 
 RSpec.describe PlayAnalyzer do
-  let(:xml_data) { File.read('./spec/xml_files/play_example.xml') }
-  subject { PlayAnalyzer.new('http://www.example.com') }
+  let!(:xml_data) { File.read('./spec/xml_files/play_example.xml') }
+  let!(:parsed_xml) { Nokogiri::XML.parse xml_data }
+  let!(:url) { 'http://www.ibiblio.org/xml/examples/shakespeare/macbeth.xml' }
+  let(:analysis) {  }
 
   before do
-    stub_request(:get, 'http://www.example.com/').with(headers: {
-      'Accept' => '*/*', 'Accept-Encoding' => 'gzip;q=1.0,deflate;q=0.6,identity;q=0.3',
-      'User-Agent' => 'Ruby'}).to_return(status: 200, body: xml_data, headers: {})
-    subject.analyze
+    play = instance_double('Play')
+    allow(play).to receive(:xml_doc).and_return(parsed_xml)
+    @analysis = PlayAnalyzer.analyze url
   end
 
   describe '#analyze' do
-    it 'returns a list of lines spoken by characters' do
-      expect(subject.analysis).not_to be_empty
-      expect(subject.analysis).to be_a Hash
+    it 'returns the number of lines spoken by characters' do
+      expect(@analysis['MACBETH']).to eq(718)
+      expect(@analysis['BANQUO']).to eq(113)
+      expect(@analysis['DUNCAN']).to eq(70)
     end
 
     it 'does not return All speaker' do
-      expect(subject.analysis).not_to have_key 'ALL'
-    end
-  end
-
-  describe '#to_s' do
-    let(:line) { subject.analysis.first }
-
-    it 'returns a line spoken by characters' do
-      expect{ subject.print_all }.to output("2\tFirst Witch\n2\tSecond Witch\n").to_stdout
+      expect(@analysis).not_to have_key 'ALL'
     end
   end
 end

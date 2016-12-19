@@ -1,36 +1,35 @@
-require 'httparty'
-require 'nokogiri'
-# Analizes play
+require 'speech'
+# Analizes speeches
 class PlayAnalyzer
-  include HTTParty
+  ROOT = '//SCENE//SPEECH'.freeze
+  INGNORE_SPEAKERS = 'ALL'.freeze
 
-  attr_accessor :analysis
-  
-  def initialize(url)
-    @response = nil
-    @play = nil
-    @analysis = {}
-    @url = url
+  def self.analyze(url)
+    xml_doc = Play.xml_doc(url)
+    new(xml_doc).analyze
+  end
+
+  def initialize(xml_doc)
+    @xml_doc = xml_doc
   end
 
   def analyze
-    download_play.xpath('//SCENE//SPEECH').each do |node|
-      name = node.children.search('SPEAKER').text
-      unless name.eql?('all')
-        @analysis[name] ||= 0
-        @analysis[name] = @analysis[name] + node.children.search('LINE').size
-      end
+    @speeches = Hash.new(0)
+    @xml_doc.xpath(ROOT).each do |speech_node|
+      speaker = Speech.new(speech_node)
+      next if speaker.name == INGNORE_SPEAKERS
+      @speeches[speaker.name] += speaker.total_lines
+    end
+    @speeches 
+  end
+
+  def report
+    @speeches.each do |speaker, lines|
+      puts "#{lines}\t#{speaker}"
     end
   end
 
-  def print_all
-    @analysis.each do |k, v|
-      puts "#{v}\t#{k}"
-    end
-  end
+  private
 
-  def download_play
-    @response ||= self.class.get @url
-    Nokogiri::XML(@response.body)
-  end
+  attr_reader :speeches
 end
